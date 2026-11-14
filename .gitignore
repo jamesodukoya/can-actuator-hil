@@ -4,6 +4,8 @@ hardware/cad/exports/
 # guide build outputs (regenerated from the CAD by the guide scripts)
 hardware/guide/images/
 hardware/guide/*.pdf
+!hardware/guide/assembly_guide.pdf
+hardware/guide/assembly_guide.html
 # carrier PCB build: keep the design files, routing session, fabrication zip and renders;
 # ignore intermediate reports, logs and exports (make_carrier.py regenerates them)
 hardware/electronics/carrier/build/*
