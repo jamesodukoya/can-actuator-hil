@@ -4,3 +4,13 @@ hardware/cad/exports/
 # guide build outputs (regenerated from the CAD by the guide scripts)
 hardware/guide/images/
 hardware/guide/*.pdf
+# carrier PCB build: keep the design files, routing session, fabrication zip and renders;
+# ignore intermediate reports, logs and exports (make_carrier.py regenerates them)
+hardware/electronics/carrier/build/*
+!hardware/electronics/carrier/build/carrier.kicad_pcb
+!hardware/electronics/carrier/build/carrier.kicad_pro
+!hardware/electronics/carrier/build/carrier.kicad_sch
+!hardware/electronics/carrier/build/carrier.ses
+!hardware/electronics/carrier/build/carrier_jlcpcb_gerbers.zip
+!hardware/electronics/carrier/build/render_top.png
+!hardware/electronics/carrier/build/render_bottom.png
