@@ -1,3 +1,6 @@
 __pycache__/
 .pytest_cache/
 hardware/cad/exports/
+# guide build outputs (regenerated from the CAD by the guide scripts)
+hardware/guide/images/
+hardware/guide/*.pdf
