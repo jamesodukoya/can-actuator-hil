@@ -16,3 +16,4 @@ hardware/electronics/carrier/build/*
 !hardware/electronics/carrier/build/carrier_jlcpcb_gerbers.zip
 !hardware/electronics/carrier/build/render_top.png
 !hardware/electronics/carrier/build/render_bottom.png
+.bricks/
