@@ -25,4 +25,5 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
+add_subdirectory(core)
 add_subdirectory(tests)
