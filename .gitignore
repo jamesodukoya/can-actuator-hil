@@ -17,3 +17,9 @@ hardware/electronics/carrier/build/*
 !hardware/electronics/carrier/build/render_top.png
 !hardware/electronics/carrier/build/render_bottom.png
 .bricks/
+# software build outputs
+build/
+build-*/
+.venv/
+results/*.xml
+results/traceability.md
