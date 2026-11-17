@@ -1,4 +1,5 @@
 add_executable(sbw_tests
+  test_alive_counter.cpp
   test_can_protocol.cpp
   test_crc8.cpp)
 target_link_libraries(sbw_tests PRIVATE sbw_core GTest::gtest_main)
