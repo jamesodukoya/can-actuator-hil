@@ -71,18 +71,30 @@ double stepSpeedWithCoulombFriction(const FrictionStepInput& input) {
     return trialSpeed - std::copysign(frictionSpeedLoss, trialSpeed);
 }
 
-// Placeholder until the linkage is modelled: no torque through the link.
-double linkTorqueNm(double /*deflectionRad*/, double /*deflectionRateRadPerSec*/,
-                    const AxlePlantParams& /*params*/) {
+double linkTorqueNm(double deflectionRad, double deflectionRateRadPerSec, const AxlePlantParams& params) {
+    // No torque passes while the crank pin is inside the slot clearance. Beyond it the printed parts act as
+    // a spring and damper on the part of the deflection past the clearance.
+    const double dampingTorqueNm = params.linkDampingNmSecPerRad * deflectionRateRadPerSec;
+    if (deflectionRad > params.playHalfWidthRad) {
+        return params.linkStiffnessNmPerRad * (deflectionRad - params.playHalfWidthRad) + dampingTorqueNm;
+    }
+    if (deflectionRad < -params.playHalfWidthRad) {
+        return params.linkStiffnessNmPerRad * (deflectionRad + params.playHalfWidthRad) + dampingTorqueNm;
+    }
     return 0.0;
 }
 
-// Placeholder until the kingpin friction is modelled.
-double kingpinStaticFrictionNm(const AxlePlantParams& /*params*/) { return 0.0; }
+double kingpinStaticFrictionNm(const AxlePlantParams& params) {
+    return params.bearingFrictionNm + params.scrubStaticNm;
+}
 
-// Placeholder until the kingpin friction is modelled.
-double kingpinKineticFrictionNm(double /*kingpinSpeedRadPerSec*/, const AxlePlantParams& /*params*/) {
-    return 0.0;
+double kingpinKineticFrictionNm(double kingpinSpeedRadPerSec, const AxlePlantParams& params) {
+    // Stribeck curve: friction is highest at rest and falls to the Coulomb level as the speed grows past
+    // the Stribeck speed.
+    const double speedRatio = kingpinSpeedRadPerSec / params.stribeckSpeedRadPerSec;
+    const double stribeckExcessNm =
+        (params.scrubStaticNm - params.scrubCoulombNm) * std::exp(-speedRatio * speedRatio);
+    return params.bearingFrictionNm + params.scrubCoulombNm + stribeckExcessNm;
 }
 
 AxlePlant::AxlePlant(const AxlePlantParams& params) : params_(params) {}
@@ -128,8 +140,21 @@ void AxlePlant::stepMotor(double linkTorque) {
     });
 }
 
-// Placeholder until the linkage is modelled: the kingpin stays still.
-void AxlePlant::stepKingpin(double /*linkTorque*/) { kingpinSpeedRadPerSec_ = 0.0; }
+void AxlePlant::stepKingpin(double linkTorque) {
+    if (isJammed_) {
+        kingpinSpeedRadPerSec_ = 0.0;  // an obstacle against the tyre holds the kingpin rigidly
+        return;
+    }
+    const double driveTorqueNm = linkTorque - params_.kingpinViscousNmSecPerRad * kingpinSpeedRadPerSec_;
+    // The kinetic level uses the speed before this step's update.
+    kingpinSpeedRadPerSec_ = stepSpeedWithCoulombFriction({
+        .speedRadPerSec = kingpinSpeedRadPerSec_,
+        .accelerationWithoutFrictionRadPerSec2 = driveTorqueNm / params_.kingpinInertiaKgM2,
+        .inertiaKgM2 = params_.kingpinInertiaKgM2,
+        .staticLevelNm = kingpinStaticFrictionNm(params_),
+        .kineticLevelNm = kingpinKineticFrictionNm(kingpinSpeedRadPerSec_, params_),
+    });
+}
 
 void AxlePlant::setJammed(bool isJammed) { isJammed_ = isJammed; }
 

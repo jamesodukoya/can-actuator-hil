@@ -1,5 +1,6 @@
 add_executable(sbw_tests
   test_alive_counter.cpp
+  test_axle_linkage.cpp
   test_axle_plant.cpp
   test_can_protocol.cpp
   test_crc8.cpp)
