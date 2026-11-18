@@ -47,7 +47,8 @@ struct HeartbeatMessage {
 CanFrame packHeartbeat(const HeartbeatMessage& message);
 HeartbeatMessage unpackHeartbeat(const CanFrame& frame);  // used by tests and tools; no validation
 
-// Sent by the runtime, not by SteeringEcu (plan G2 D23). Counts saturate at the field maximum.
+// Sent by the runtime, not by SteeringEcu: it reports what only the runtime can measure (step overruns,
+// step times, dropped received frames). Counts saturate at the field maximum.
 struct DiagMessage {
     std::uint16_t steeringOverruns = 0;
     std::uint16_t steeringStepMaxCycles = 0;  // CPU cycles on the STM32; 0 in SIL

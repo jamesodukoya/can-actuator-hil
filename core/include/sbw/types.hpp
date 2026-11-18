@@ -19,7 +19,7 @@ inline constexpr std::uint8_t kDisagree = static_cast<std::uint8_t>(1u << 3);
 inline constexpr std::uint8_t kCrc = static_cast<std::uint8_t>(1u << 4);
 inline constexpr std::uint8_t kCounter = static_cast<std::uint8_t>(1u << 5);
 inline constexpr std::uint8_t kTimeout = static_cast<std::uint8_t>(1u << 6);
-// Stale kingpin sensor or steering-step overrun; SBW_Diag tells which (plan G2 D23).
+// Stale kingpin sensor or steering-step overrun; SBW_Diag tells which.
 inline constexpr std::uint8_t kInternal = static_cast<std::uint8_t>(1u << 7);
 }  // namespace fault_bits
 
@@ -29,7 +29,7 @@ struct CanFrame {
     std::array<std::uint8_t, 8> data{};
 };
 
-// What the runtime copies for the steering step at slot 0 (plan G2 D21).
+// What the runtime copies for the steering step at slot 0.
 struct SensorReadings {
     std::int32_t motorEncoderCounts = 0;
     std::uint16_t as5600RawCount = 0;
