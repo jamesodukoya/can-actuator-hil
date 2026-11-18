@@ -1,0 +1,3 @@
+add_executable(sbw_pack_vectors pack_vectors.cpp)
+target_link_libraries(sbw_pack_vectors PRIVATE sbw_core)
+sbw_set_strict_warnings(sbw_pack_vectors)
