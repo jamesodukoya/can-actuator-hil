@@ -26,5 +26,6 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 add_subdirectory(core)
+add_subdirectory(sim)
 add_subdirectory(tools)
 add_subdirectory(tests)
