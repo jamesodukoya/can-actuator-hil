@@ -6,7 +6,7 @@
 namespace sbw {
 namespace {
 
-// Estimates for simulation only; replace them with measured values when the real axle is identified.
+// Estimates for simulation only; to be replaced with measured values when the real axle is identified.
 constexpr double kMotorResistanceOhm = 3.0;         // 12 V / 4 A stall current assumed for a 520-size motor
 constexpr double kMotorInductanceHenry = 1.5e-3;    // typical for a 520-size brushed motor
 constexpr double kTorqueConstantNmPerA = 0.0115;    // no-load 1037 rad/s at 12 V gives k_e of about 0.0116
