@@ -1,5 +1,6 @@
 #include "sbw/sensor_model.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include "sbw/sensor_conversion.hpp"
@@ -17,6 +18,16 @@ constexpr double kAs5600FilterTimeConstantSec = 0.286e-3;
 // Backward Euler: gain dt / (tau + dt) = 0.0337838 per plant step. Only + - * / are used so the result
 // is the same on every machine.
 constexpr double kAs5600FilterGain = kPlantStepSec / (kAs5600FilterTimeConstantSec + kPlantStepSec);
+
+constexpr std::uint16_t kAdcMaxCount = 4095;  // 12-bit ADC
+
+std::uint16_t adcCountsFor(double amps) {
+    if (amps <= 0.0) {
+        return 0;  // IPROPI only sources current: a reverse-flowing transistor reads zero
+    }
+    const double counts = std::floor(amps / static_cast<double>(kCurrentSenseAmpsPerCount));
+    return static_cast<std::uint16_t>(std::min(counts, static_cast<double>(kAdcMaxCount)));
+}
 
 }  // namespace
 
@@ -62,6 +73,10 @@ bool SensorModel::isKingpinReadFailing() const {
     return isKingpinReadFailing_;
 }
 
+CurrentSenseSample SensorModel::sampleCurrent(const AxlePlant& plant, double appliedDuty) const {
+    return currentSenseSampleFor(plant.motorCurrentA(), appliedDuty);
+}
+
 void SensorModel::clearFaults() {
     isMotorEncoderFrozen_ = false;
     kingpinOffsetRad_ = 0.0;
@@ -82,6 +97,14 @@ std::uint16_t SensorModel::as5600CountFor(double angleRad) const {
     // C++ keeps the sign of the dividend in %, so a negative step count needs the extra + countsPerRev.
     const std::int64_t wrapped = ((stepsFromMechanicalZero % countsPerRev) + countsPerRev) % countsPerRev;
     return static_cast<std::uint16_t>(wrapped);
+}
+
+CurrentSenseSample currentSenseSampleFor(double motorCurrentA, double appliedDuty) {
+    const double phaseSign = appliedDuty >= 0.0 ? 1.0 : -1.0;
+    // A negative argument means the current opposes PH, which reads zero.
+    const std::uint16_t driveCounts = adcCountsFor(phaseSign * motorCurrentA);
+    const std::uint16_t brakeCounts = adcCountsFor(std::fabs(motorCurrentA));
+    return {.driveCounts = driveCounts, .brakeCounts = brakeCounts};
 }
 
 }  // namespace sbw

@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "sbw/axle_plant.hpp"
+#include "sbw/sensor_conversion.hpp"
 
 namespace sbw {
 
@@ -24,6 +25,7 @@ class SensorModel {
     void setKingpinOffsetMrad(std::int16_t offsetMrad);  // adds to the filtered angle before quantization
     void setKingpinReadsFailing(bool isFailing);         // the runtime then marks readings stale
     bool isKingpinReadFailing() const;
+    CurrentSenseSample sampleCurrent(const AxlePlant& plant, double appliedDuty) const;
     void clearFaults();
 
  private:
@@ -37,5 +39,10 @@ class SensorModel {
     double kingpinOffsetRad_ = 0.0;
     bool isKingpinReadFailing_ = false;
 };
+
+// What the two ADC samples read for a motor current under the IPROPI rules: the drive sample sees the
+// current only when it flows with the bridge's PH direction, the brake sample sees it either way. The
+// drive sample is the ideal one even at a duty too small to sample; the decoder decides whether to use it.
+CurrentSenseSample currentSenseSampleFor(double motorCurrentA, double appliedDuty);
 
 }  // namespace sbw

@@ -1,5 +1,7 @@
 #include "sbw/sensor_conversion.hpp"
 
+#include <cmath>
+
 #include "sbw/types.hpp"
 
 namespace sbw {
@@ -18,6 +20,18 @@ float kingpinAngleRad(std::uint16_t rawCount, std::uint16_t zeroCount) {
         countsFromZero += kAs5600CountsPerRev;
     }
     return static_cast<float>(countsFromZero) * (kTwoPi / static_cast<float>(kAs5600CountsPerRev));
+}
+
+float CurrentSenseDecoder::decode(const CurrentSenseSample& sample, float appliedDuty) {
+    const float phaseSign = appliedDuty >= 0.0f ? 1.0f : -1.0f;
+    const bool isDrivePhaseLongEnough = std::fabs(appliedDuty) >= kMinSenseDuty;
+    if (isDrivePhaseLongEnough) {
+        // Halfway between "both samples equal" and "drive sample zero" leaves the most margin for noise on
+        // either side. The 2u keeps the product in unsigned int, where uint16_t would overflow.
+        const bool flowsWithPh = 2u * sample.driveCounts >= sample.brakeCounts;
+        directionSign_ = flowsWithPh ? phaseSign : -phaseSign;
+    }
+    return directionSign_ * static_cast<float>(sample.brakeCounts) * kCurrentSenseAmpsPerCount;
 }
 
 }  // namespace sbw
