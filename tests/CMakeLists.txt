@@ -3,7 +3,8 @@ add_executable(sbw_tests
   test_axle_linkage.cpp
   test_axle_plant.cpp
   test_can_protocol.cpp
-  test_crc8.cpp)
+  test_crc8.cpp
+  test_sensors.cpp)
 target_link_libraries(sbw_tests PRIVATE sbw_core sbw_sim GTest::gtest_main)
 sbw_set_test_warnings(sbw_tests)
 include(GoogleTest)
