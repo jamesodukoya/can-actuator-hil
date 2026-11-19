@@ -5,6 +5,7 @@ add_executable(sbw_tests
   test_can_protocol.cpp
   test_crc8.cpp
   test_current_sense.cpp
+  test_jam_observer.cpp
   test_rate_estimator.cpp
   test_sensors.cpp
   test_steering_controller.cpp)
