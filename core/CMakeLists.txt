@@ -2,6 +2,7 @@ add_library(sbw_core
   src/alive_counter.cpp
   src/can_protocol.cpp
   src/crc8.cpp
+  src/disagreement_monitor.cpp
   src/jam_observer.cpp
   src/rate_estimator.cpp
   src/sensor_conversion.cpp
