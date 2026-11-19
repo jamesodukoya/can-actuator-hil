@@ -6,7 +6,8 @@ add_executable(sbw_tests
   test_crc8.cpp
   test_current_sense.cpp
   test_rate_estimator.cpp
-  test_sensors.cpp)
+  test_sensors.cpp
+  test_steering_controller.cpp)
 target_link_libraries(sbw_tests PRIVATE sbw_core sbw_sim GTest::gtest_main)
 sbw_set_test_warnings(sbw_tests)
 include(GoogleTest)

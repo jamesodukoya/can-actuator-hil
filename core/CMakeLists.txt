@@ -3,7 +3,8 @@ add_library(sbw_core
   src/can_protocol.cpp
   src/crc8.cpp
   src/rate_estimator.cpp
-  src/sensor_conversion.cpp)
+  src/sensor_conversion.cpp
+  src/steering_controller.cpp)
 target_include_directories(sbw_core PUBLIC include)
 sbw_set_strict_warnings(sbw_core)
 sbw_set_embedded_flags(sbw_core)
