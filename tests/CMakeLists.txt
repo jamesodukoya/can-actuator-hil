@@ -4,6 +4,7 @@ add_executable(sbw_tests
   test_axle_plant.cpp
   test_can_protocol.cpp
   test_crc8.cpp
+  test_current_loop.cpp
   test_current_sense.cpp
   test_disagreement_monitor.cpp
   test_jam_observer.cpp
