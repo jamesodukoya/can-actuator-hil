@@ -43,7 +43,8 @@ class SteeringEcu {
     void receiveFrames(const SteeringInputs& inputs);
     void receiveCommandFrame(const CanFrame& frame);
     MeasuredState measure(const SensorReadings& readings);
-    void latchFrameFaults();
+    void latchModeIndependentFaults(bool hasScheduleOverrun);
+    std::uint16_t kingpinRawToUse(const SensorReadings& readings);
     void applyNewCommand();
     void clearFaultsIfAllowed();
     void runMonitors(bool isJamDetected, bool isDisagreementConfirmed);
@@ -67,6 +68,9 @@ class SteeringEcu {
     std::uint32_t lastAcceptedTick_ = 0;
     std::uint32_t crcFailureStreak_ = 0;
     std::uint32_t counterFailureStreak_ = 0;
+    std::uint16_t lastFreshKingpinRaw_ = 0;
+    // Consecutive ticks with a failed kingpin read; stops at the latch limit.
+    std::uint32_t staleKingpinStreak_ = 0;
     bool isMotorZeroed_ = false;
     float motorZeroOffsetRad_ = 0.0f;  // motor encoder angle at the first tick, aligned to the kingpin sensor
 };

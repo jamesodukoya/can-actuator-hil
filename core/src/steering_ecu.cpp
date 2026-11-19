@@ -29,7 +29,7 @@ SteeringOutputs SteeringEcu::step(const SteeringInputs& inputs) {
         disagreement_.update(measured.motorAngleAtKingpinRad, measured.kingpinAngleRad);
 
     const std::uint8_t faultsBefore = latchedFaults_;
-    latchFrameFaults();
+    latchModeIndependentFaults(inputs.hasScheduleOverrun);
     applyNewCommand();
     runMonitors(isJamDetected, isDisagreementConfirmed);
 
@@ -98,7 +98,7 @@ void SteeringEcu::receiveCommandFrame(const CanFrame& frame) {
 
 SteeringEcu::MeasuredState SteeringEcu::measure(const SensorReadings& readings) {
     const float shaftAngleRad = motorAngleRad(readings.motorEncoderCounts, config_.axle.motorCountsPerRev);
-    const float kingpinRad = kingpinAngleRad(readings.as5600RawCount, config_.axle.as5600ZeroCount);
+    const float kingpinRad = kingpinAngleRad(kingpinRawToUse(readings), config_.axle.as5600ZeroCount);
     const float gearRatio = config_.axle.gearRatio;
     if (!isMotorZeroed_) {
         // The motor encoder is incremental, so it starts at an arbitrary angle; align it to the absolute
@@ -117,13 +117,30 @@ SteeringEcu::MeasuredState SteeringEcu::measure(const SensorReadings& readings) 
             .busVoltageV = readings.busVoltageV};
 }
 
-// Active in every mode: corrupted or repeated command frames mean the link is broken whatever the mode.
-void SteeringEcu::latchFrameFaults() {
+// A failed read keeps the last good angle: the raw count of a failed read is old and must not be trusted. The
+// streak is counted here, every tick and in every mode, so the clear guard sees it even while no mode is
+// active. It stops at the latch limit so it cannot wrap around during a long sensor failure.
+std::uint16_t SteeringEcu::kingpinRawToUse(const SensorReadings& readings) {
+    if (readings.isKingpinReadingFresh) {
+        lastFreshKingpinRaw_ = readings.as5600RawCount;
+        staleKingpinStreak_ = 0;
+    } else if (staleKingpinStreak_ < config_.monitors.staleKingpinLatchTicks) {
+        ++staleKingpinStreak_;
+    }
+    return lastFreshKingpinRaw_;
+}
+
+// Active in every mode. Corrupted or repeated command frames mean the link is broken whatever the mode, and a
+// schedule overrun means the ECU cannot keep its own timing whatever it is doing.
+void SteeringEcu::latchModeIndependentFaults(bool hasScheduleOverrun) {
     if (crcFailureStreak_ >= config_.monitors.frameFaultLatchCount) {
         latch(fault_bits::kCrc);
     }
     if (counterFailureStreak_ >= config_.monitors.frameFaultLatchCount) {
         latch(fault_bits::kCounter);
+    }
+    if (hasScheduleOverrun) {
+        latch(fault_bits::kInternal);
     }
 }
 
@@ -147,19 +164,33 @@ void SteeringEcu::applyNewCommand() {
     }
 }
 
+// A fault whose cause is still present must not clear, or a gateway that keeps sending ClearFault would turn
+// torque back on with a broken sensor.
 void SteeringEcu::clearFaultsIfAllowed() {
-    latchedFaults_ = 0;
+    const bool isConditionStillPresent = disagreement_.isConditionActive() || staleKingpinStreak_ > 0;
+    if (!isConditionStillPresent) {
+        latchedFaults_ = 0;
+    }
 }
 
-// Silence is normal while Off (the gateway may not be running yet), so the timeout only runs in a mode.
-void SteeringEcu::runMonitors([[maybe_unused]] bool isJamDetected,
-                              [[maybe_unused]] bool isDisagreementConfirmed) {
+// Silence is normal while Off (the gateway may not be running yet), and the observer, the monitor and the
+// stale-read count run every tick, so none of them may latch a fault while Off.
+void SteeringEcu::runMonitors(bool isJamDetected, bool isDisagreementConfirmed) {
     if (activeMode_ == ControlMode::Off) {
         return;
     }
     const std::uint32_t ticksSinceCommand = tickCount_ - lastAcceptedTick_;
     if (ticksSinceCommand > config_.monitors.commandTimeoutTicks) {
         latch(fault_bits::kTimeout);
+    }
+    if (staleKingpinStreak_ >= config_.monitors.staleKingpinLatchTicks) {
+        latch(fault_bits::kInternal);
+    }
+    if (isDisagreementConfirmed) {
+        latch(fault_bits::kDisagree);
+    }
+    if (isJamDetected) {
+        latch(fault_bits::kJam);
     }
 }
 
