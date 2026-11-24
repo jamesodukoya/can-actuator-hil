@@ -138,6 +138,24 @@ DiagMessage unpackDiag(const CanFrame& frame) {
     return message;
 }
 
+CanFrame packBuild(const BuildMessage& message) {
+    CanFrame frame;
+    frame.id = kBuildId;
+    frame.length = kFrameLength;
+    writeUint32Le(frame.data, 0, message.commitHash);
+    frame.data[4] = static_cast<std::uint8_t>(message.buildType);
+    frame.data[5] = message.hasUncommittedChanges ? 1 : 0;
+    return frame;
+}
+
+BuildMessage unpackBuild(const CanFrame& frame) {
+    BuildMessage message;
+    message.commitHash = readUint32Le(frame.data, 0);
+    message.buildType = static_cast<BuildType>(frame.data[4]);
+    message.hasUncommittedChanges = frame.data[5] != 0;
+    return message;
+}
+
 std::int16_t saturateToInt16(float value) {
     constexpr float kMax = 32767.0f;
     constexpr float kMin = -32768.0f;

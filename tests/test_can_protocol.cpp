@@ -207,3 +207,32 @@ TEST(DiagFrame, RoundTripsMaxima) {
     EXPECT_EQ(decoded.staleKingpinReads, message.staleKingpinReads);
     EXPECT_EQ(decoded.droppedRxFrames, message.droppedRxFrames);
 }
+
+TEST(BuildFrame, PacksToKnownBytes) {
+    RecordProperty("requirements", "REQ-CAN-003");
+    const sbw::BuildMessage message{.commitHash = 0xa027448f,
+                                    .buildType = sbw::BuildType::Release,
+                                    .hasUncommittedChanges = true};
+
+    const sbw::CanFrame frame = sbw::packBuild(message);
+
+    EXPECT_EQ(frame.id, 0x1F1u);
+    EXPECT_EQ(frame.length, 8);
+    const std::array<std::uint8_t, 8> expected{0x8f, 0x44, 0x27, 0xa0, 0x01, 0x01, 0x00, 0x00};
+    EXPECT_EQ(frame.data, expected);
+}
+
+TEST(BuildFrame, RoundTripsDebugClean) {
+    const sbw::BuildMessage message{.commitHash = 0xffffffff,
+                                    .buildType = sbw::BuildType::Debug,
+                                    .hasUncommittedChanges = false};
+
+    const sbw::CanFrame frame = sbw::packBuild(message);
+    const sbw::BuildMessage decoded = sbw::unpackBuild(frame);
+
+    const std::array<std::uint8_t, 8> expected{0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00};
+    EXPECT_EQ(frame.data, expected);
+    EXPECT_EQ(decoded.commitHash, message.commitHash);
+    EXPECT_EQ(decoded.buildType, message.buildType);
+    EXPECT_EQ(decoded.hasUncommittedChanges, message.hasUncommittedChanges);
+}

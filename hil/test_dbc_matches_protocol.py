@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from sbw_can import (COMMAND_ID, CRC_BYTE_INDEX, DIAG_ID, HEARTBEAT_ID, REPO_ROOT, STATUS_ID,
-                     crc8_sae_j1850)
+from sbw_can import (BUILD_ID, COMMAND_ID, CRC_BYTE_INDEX, DIAG_ID, HEARTBEAT_ID, REPO_ROOT,
+                     STATUS_ID, crc8_sae_j1850)
 
 DEFAULT_PACK_VECTORS = REPO_ROOT / "build" / "tools" / "sbw_pack_vectors"
 CRC_CHECK_INPUT = b"123456789"
@@ -86,7 +86,7 @@ def test_dbc_scaling_gives_si_units(database, cpp_vectors):
 @pytest.mark.requirements("REQ-CAN-002", "REQ-CAN-003")
 def test_dbc_frame_ids_lengths_and_key_signal_positions(database):
     frame_ids = {"SBW_Heartbeat": HEARTBEAT_ID, "SBW_Command": COMMAND_ID,
-                 "SBW_Status": STATUS_ID, "SBW_Diag": DIAG_ID}
+                 "SBW_Status": STATUS_ID, "SBW_Diag": DIAG_ID, "SBW_Build": BUILD_ID}
     for name, frame_id in frame_ids.items():
         message = database.get_message_by_name(name)
         assert message.frame_id == frame_id, name

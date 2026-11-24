@@ -6,8 +6,8 @@ Stage 1 verifies these requirements in software-in-the-loop (SIL) against a plan
 |---|---|---|
 | REQ-CAN-001 | The ECU discards an `SBW_Command` whose length is not 8 or whose `Crc8` is not CRC-8/SAE-J1850 of bytes 0–6. Three consecutive such frames latch `FaultCrc` and turn torque off. | unit, SIL |
 | REQ-CAN-002 | The ECU discards an `SBW_Command` whose `AliveCounter` equals the last accepted counter or jumps by 4–15 (mod 16); a jump also resynchronizes the reference. Three consecutive discards latch `FaultCounter` and turn torque off. | unit, SIL |
-| REQ-CAN-003 | The byte layouts, scalings and ranges of `SBW_Command`, `SBW_Status`, `SBW_Heartbeat` and `SBW_Diag` in the C++ code match `dbc/steer_by_wire.dbc`. | unit, SIL |
-| REQ-CAN-004 | The ECU sends `SBW_Status` every 5 ms and `SBW_Heartbeat` every 10 ms of ECU time, plus one extra `SBW_Status` in the tick a fault latches; its runtime sends `SBW_Diag` every 100 ms. | unit, SIL |
+| REQ-CAN-003 | The byte layouts, scalings and ranges of `SBW_Command`, `SBW_Status`, `SBW_Heartbeat`, `SBW_Diag` and `SBW_Build` in the C++ code match `dbc/steer_by_wire.dbc`. | unit, SIL |
+| REQ-CAN-004 | The ECU sends `SBW_Status` every 5 ms and `SBW_Heartbeat` every 10 ms of ECU time, plus one extra `SBW_Status` in the tick a fault latches; its runtime sends `SBW_Diag` every 100 ms, and `SBW_Build` 1 ms after start-up and then every 1 s. | unit, SIL |
 | REQ-MON-001 | While torque is enabled, if no command has been accepted for more than 50 ms, the ECU latches `FaultTimeout` and turns torque off. | unit, SIL |
 | REQ-MON-002 | While torque is enabled, if the motor-encoder angle (at the kingpin) and the kingpin-encoder angle differ by more than 50 mrad for 10 consecutive 1 ms ticks, the ECU latches `FaultDisagree` and turns torque off. | unit, SIL |
 | REQ-MON-003 | While torque is enabled, if the kingpin-encoder reading is stale (the read failed) for 3 consecutive 1 ms ticks, the ECU latches `FaultInternal` and turns torque off; until then it holds the last fresh angle. | unit, SIL |

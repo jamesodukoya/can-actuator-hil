@@ -9,6 +9,7 @@ inline constexpr std::uint32_t kHeartbeatId = 0x100;
 inline constexpr std::uint32_t kCommandId = 0x110;
 inline constexpr std::uint32_t kStatusId = 0x120;
 inline constexpr std::uint32_t kDiagId = 0x1F0;
+inline constexpr std::uint32_t kBuildId = 0x1F1;
 inline constexpr std::uint8_t kFrameLength = 8;
 inline constexpr std::uint8_t kAliveCounterMask = 0x0F;
 inline constexpr std::uint8_t kHighestModeValue = static_cast<std::uint8_t>(ControlMode::ClearFault);
@@ -59,6 +60,17 @@ struct DiagMessage {
 
 CanFrame packDiag(const DiagMessage& message);
 DiagMessage unpackDiag(const CanFrame& frame);  // used by tests and tools; no validation
+
+enum class BuildType : std::uint8_t { Debug = 0, Release = 1 };
+
+struct BuildMessage {
+    std::uint32_t commitHash = 0;        // first 8 hex digits of the git commit, read as one number
+    BuildType buildType = BuildType::Debug;
+    bool hasUncommittedChanges = false;  // tracked files differed from that commit at build time
+};
+
+CanFrame packBuild(const BuildMessage& message);
+BuildMessage unpackBuild(const CanFrame& frame);  // used by tests and tools; no validation
 
 // Round to nearest (halves away from zero), clamp to the type's range, NaN -> 0.
 std::int16_t saturateToInt16(float value);

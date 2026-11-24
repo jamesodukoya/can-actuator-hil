@@ -92,6 +92,15 @@ void printDiagVector(const sbw::DiagMessage& message) {
     printVector("SBW_Diag", fieldsJson, sbw::packDiag(message));
 }
 
+void printBuildVector(const sbw::BuildMessage& message) {
+    const std::string fieldsJson = joinFields({
+        jsonField("CommitHash", message.commitHash),
+        jsonField("BuildType", static_cast<int>(message.buildType)),
+        jsonField("UncommittedChanges", message.hasUncommittedChanges ? 1 : 0),
+    });
+    printVector("SBW_Build", fieldsJson, sbw::packBuild(message));
+}
+
 }  // namespace
 
 int main() {
@@ -124,5 +133,10 @@ int main() {
     printDiagVector({.steeringOverruns = 65535, .steeringStepMaxCycles = 65535,
                      .currentStepMaxCycles = 65535, .staleKingpinReads = 255,
                      .droppedRxFrames = 255});
+
+    printBuildVector({.commitHash = 0xa027448f, .buildType = sbw::BuildType::Release,
+                      .hasUncommittedChanges = true});
+    printBuildVector({.commitHash = 0xffffffff, .buildType = sbw::BuildType::Debug,
+                      .hasUncommittedChanges = false});
     return 0;
 }

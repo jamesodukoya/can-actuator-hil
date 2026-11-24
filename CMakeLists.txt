@@ -15,6 +15,16 @@ endif()
 
 include(cmake/CompilerWarnings.cmake)
 
+# A custom target has no output file, so it runs on every build; BYPRODUCTS tells Ninja the header is
+# generated, and the script only replaces it when the identity changed.
+set(SBW_GENERATED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/generated")
+set(SBW_BUILD_IDENTITY_HEADER "${SBW_GENERATED_INCLUDE_DIR}/sbw/build_identity.hpp")
+add_custom_target(sbw_build_identity ALL
+  COMMAND "${CMAKE_COMMAND}" -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -DOUTPUT_FILE=${SBW_BUILD_IDENTITY_HEADER}
+          -DBUILD_TYPE=${CMAKE_BUILD_TYPE} -P "${PROJECT_SOURCE_DIR}/cmake/WriteBuildIdentity.cmake"
+  BYPRODUCTS "${SBW_BUILD_IDENTITY_HEADER}"
+  COMMENT "Writing build identity")
+
 include(FetchContent)
 FetchContent_Declare(googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
