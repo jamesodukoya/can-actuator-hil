@@ -1,6 +1,6 @@
 # Requirements
 
-Stage 1 verifies these requirements in software-in-the-loop (SIL) against a plant model with estimated parameters. No SIL result describes the real axle; hardware verification is added per requirement in later stages. `scripts/write_traceability.py` reads the table: keep one row per ID and three columns.
+Stage 1 verifies these requirements in software-in-the-loop (SIL) against a plant model; each requirement gains hardware verification in the stage that builds its hardware. `scripts/write_traceability.py` reads the table: keep one row per ID and three columns.
 
 | ID | Requirement | Method |
 |---|---|---|
